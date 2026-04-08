@@ -1,4 +1,4 @@
-//Package db A simple library to persist structs in json file and perform queries and CRUD operations
+// Package db A simple library to persist structs in json file and perform queries and CRUD operations
 package simdb
 
 import (
@@ -11,11 +11,12 @@ import (
 var ErrRecordNotFound = errors.New("record not found")
 var ErrUpdateFailed = errors.New("update failed, no record(s) to update")
 
-//Entity any structure wanted to persist to json db should implement this interface function ID().
-//ID and Field will be used while doing update and delete operation.
-//ID() return the id value and field name that stores the id
+// Entity any structure wanted to persist to json db should implement this interface function ID().
+// ID and Field will be used while doing update and delete operation.
+// ID() return the id value and field name that stores the id
 //
-//Sample Struct
+// Sample Struct
+//
 //	type Customer struct {
 //		CustID string `json:"custid"`
 //		Name string `json:"name"`
@@ -44,7 +45,7 @@ type query struct {
 	value         interface{}
 }
 
-//Driver contains all the state of the db.
+// Driver contains all the state of the db.
 type Driver struct {
 	dir               string    //directory name to store the db
 	queries           [][]query // nested queries
@@ -58,9 +59,10 @@ type Driver struct {
 	mutex             *sync.Mutex
 }
 
-//New creates a new database driver. Accepts the directory name to store the db files.
-//If the passed directory not exist then will create one.
-//   driver, err:=db.New("customer")
+// New creates a new database driver. Accepts the directory name to store the db files.
+// If the passed directory not exist then will create one.
+//
+//	driver, err:=db.New("customer")
 func New(dir string) (*Driver, error) {
 	driver := &Driver{
 		dir:      dir,
@@ -71,10 +73,12 @@ func New(dir string) (*Driver, error) {
 	return driver, err
 }
 
-//Open will open the json db based on the entity passed.
-//Once the file is open you can apply where conditions or get operation.
-//   driver.Open(Customer{})
-//Open returns a pointer to Driver, so you can chain methods like Where(), Get(), etc
+// Open will open the json db based on the entity passed.
+// Once the file is open you can apply where conditions or get operation.
+//
+//	driver.Open(Customer{})
+//
+// Open returns a pointer to Driver, so you can chain methods like Where(), Get(), etc
 func (d *Driver) Open(entity Entity) *Driver {
 	d.queries = nil
 	d.entityDealingWith = entity
@@ -88,25 +92,25 @@ func (d *Driver) Open(entity Entity) *Driver {
 	return d
 }
 
-//Errors will return errors encountered while performing any operations
+// Errors will return errors encountered while performing any operations
 func (d *Driver) Errors() []error {
 	return d.errors
 }
 
-//Insert the entity to the json db. Insert will identify the type of the
-//entity and insert the entity to the specific json file based on the type of the entity.
-//If the db file not exist then will create a new db file
+// Insert the entity to the json db. Insert will identify the type of the
+// entity and insert the entity to the specific json file based on the type of the entity.
+// If the db file not exist then will create a new db file
 //
-// 	customer:=Customer {
-//		CustID:"CUST1",
-//		Name:"sarouje",
-//		Address: "address",
-//		Contact: Contact {
-//			Phone:"45533355",
-//			Email:"someone@gmail.com",
-//		},
-//	}
-//  err:=driver.Insert(customer)
+//		customer:=Customer {
+//			CustID:"CUST1",
+//			Name:"sarouje",
+//			Address: "address",
+//			Contact: Contact {
+//				Phone:"45533355",
+//				Email:"someone@gmail.com",
+//			},
+//		}
+//	 err:=driver.Insert(customer)
 func (d *Driver) Insert(entity Entity) (err error) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
@@ -116,9 +120,9 @@ func (d *Driver) Insert(entity Entity) (err error) {
 	return
 }
 
-//Where builds a where clause to filter the records.
+// Where builds a where clause to filter the records.
 //
-//   driver.Open(Customer{}).Where("custid","=","CUST1")
+//	driver.Open(Customer{}).Where("custid","=","CUST1")
 func (d *Driver) Where(key, cond string, val interface{}) *Driver {
 	q := query{
 		key:      key,
@@ -136,12 +140,15 @@ func (d *Driver) Where(key, cond string, val interface{}) *Driver {
 	return d
 }
 
-//Get the result from the json db as an array. If no where condition then return all the data from json db
+// Get the result from the json db as an array. If no where condition then return all the data from json db
 //
-//Get based on a where condition
-//   driver.Open(Customer{}).Where("name","=","sarouje").Get()
-//Get all records
-//   driver.Open(Customer{}).Get()
+// Get based on a where condition
+//
+//	driver.Open(Customer{}).Where("name","=","sarouje").Get()
+//
+// Get all records
+//
+//	driver.Open(Customer{}).Get()
 func (d *Driver) Get() *Driver {
 	if !d.isDBOpened() {
 		return d
@@ -156,8 +163,9 @@ func (d *Driver) Get() *Driver {
 	return d
 }
 
-//First return the first record matching the condtion.
-//   driver.Open(Customer{}).Where("custid","=","CUST1").First()
+// First return the first record matching the condtion.
+//
+//	driver.Open(Customer{}).Where("custid","=","CUST1").First()
 func (d *Driver) First() *Driver {
 	if !d.isDBOpened() {
 		return d
@@ -172,12 +180,12 @@ func (d *Driver) First() *Driver {
 	return d
 }
 
-//Raw will return the data in map type
+// Raw will return the data in map type
 func (d *Driver) Raw() interface{} {
 	return d.jsonContent
 }
 
-//RawArray will return the data in map array type
+// RawArray will return the data in map array type
 func (d *Driver) RawArray() []interface{} {
 	if aa, ok := d.jsonContent.([]interface{}); ok {
 		return aa
@@ -185,21 +193,23 @@ func (d *Driver) RawArray() []interface{} {
 	return nil
 }
 
-//AsEntity will converts the map to the passed structure pointer.
-//should call this function after calling Get() or First(). This function will convert
-//the result of Get or First operation to the passed structure type
-//'output' variable should be a pointer to a structure or stucture array. Function returns error in case
-//of any errors in conversion.
+// AsEntity will converts the map to the passed structure pointer.
+// should call this function after calling Get() or First(). This function will convert
+// the result of Get or First operation to the passed structure type
+// 'output' variable should be a pointer to a structure or stucture array. Function returns error in case
+// of any errors in conversion.
 //
-//First()
-//   var custOut Customer
-//   err:=driver.Open(Customer{}).First().AsEntity(&custOut)
-//   fmt.Printf("%#v", custOut)
-//   this function will fill the custOut with the values from the map
+// First()
 //
-//Get()
-//   var customers []Customer
-//   err:=driver.Open(Customer{}).Get().AsEntity(&customers)
+//	var custOut Customer
+//	err:=driver.Open(Customer{}).First().AsEntity(&custOut)
+//	fmt.Printf("%#v", custOut)
+//	this function will fill the custOut with the values from the map
+//
+// Get()
+//
+//	var customers []Customer
+//	err:=driver.Open(Customer{}).Get().AsEntity(&customers)
 func (d *Driver) AsEntity(output interface{}) (err error) {
 	if !d.isDBOpened() {
 		return fmt.Errorf("should call Open() before calling AsEntity()")
@@ -223,11 +233,13 @@ func (d *Driver) AsEntity(output interface{}) (err error) {
 	return
 }
 
-//Update the json data based on the id field/value pair
-//   customerToUpdate:=driver.Open(Customer{}).Where("custid","=","CUST1").First()
-//   customerToUpdate.Name="Sony Arouje"
-//   err:=driver.Update(customerToUpdate)
-//Should not change the ID field when updating the record.
+// Update the json data based on the id field/value pair
+//
+//	customerToUpdate:=driver.Open(Customer{}).Where("custid","=","CUST1").First()
+//	customerToUpdate.Name="Sony Arouje"
+//	err:=driver.Update(customerToUpdate)
+//
+// Should not change the ID field when updating the record.
 func (d *Driver) Update(entity Entity) (err error) {
 	d.queries = nil
 	d.entityDealingWith = entity
@@ -261,16 +273,16 @@ func (d *Driver) Update(entity Entity) (err error) {
 // Upsert function will try updating the passed entity. If no records to update then
 // do the Insert operation.
 //
-//    	customer := Customer{
-//		CustID:  "CU4",
-//		Name:    "Sony Arouje",
-//		Address: "address",
-//		Contact: Contact{
-//			Phone: "45533355",
-//			Email: "someone@gmail.com",
-//		},
-//	}
-//  driver.Upsert(customer)
+//	   	customer := Customer{
+//			CustID:  "CU4",
+//			Name:    "Sony Arouje",
+//			Address: "address",
+//			Contact: Contact{
+//				Phone: "45533355",
+//				Email: "someone@gmail.com",
+//			},
+//		}
+//	 driver.Upsert(customer)
 func (d *Driver) Upsert(entity Entity) (err error) {
 	err = d.Update(entity)
 	if errors.Is(err, ErrUpdateFailed) {
@@ -279,11 +291,12 @@ func (d *Driver) Upsert(entity Entity) (err error) {
 	return
 }
 
-//Delete the record from the json db based on the id field/value pair
-//   custToDelete:=Customer {
-// 	   CustID:"CUST1",
-//   }
-//   err:=driver.Delete(custToDelete)
+// Delete the record from the json db based on the id field/value pair
+//
+//	  custToDelete:=Customer {
+//		   CustID:"CUST1",
+//	  }
+//	  err:=driver.Delete(custToDelete)
 func (d *Driver) Delete(entity Entity) (err error) {
 	d.queries = nil
 	d.entityDealingWith = entity
