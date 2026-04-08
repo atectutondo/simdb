@@ -328,3 +328,11 @@ func (d *Driver) Delete(entity Entity) (err error) {
 	}
 	return
 }
+
+// Reset deletes every record from the existing database if any
+func (d *Driver) Reset(entity Entity) (err error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	d.Open(entity)
+	return d.writeAll(make([]interface{}, 0))
+}
